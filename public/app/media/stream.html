@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title></title>
+</head>
+<body ng-app='media'>
+  <div id= 'stream' ng-controller="MediaController">
+    <video autoplay style="width:1000px; height:1000px;"></video>
+  </div>
+<script src="\public\scripts\adapter.js"></script>
+<script src="\bower_components\angular\angular.js"></script>
+<script>
+  angular.module('media',[])
+  .factory('WebRTC', function(){
+    var stream = {};
+    var getMedia = function(elem){
+      getUserMedia({
+        audio:false, 
+        video:true,
+        requestedMediaTypes:true
+      }, function(mediaSteam){
+        attachMediaStream(elem, mediaSteam);
+        stream = mediaSteam;
+      }, function(err){
+        console.log(err);
+      });
+    };
+    
+    return {
+      getMedia:getMedia,
+      stream:stream
+    };
+  })
+  .controller('MediaController', function($scope, WebRTC){
+    var elem = document.querySelector('video');
+    WebRTC.getMedia(elem);
+  })
+  .directive('media-view', function($scope, WebRTC){
+
+  });
+</script>
+</body>
+</html>
+
+

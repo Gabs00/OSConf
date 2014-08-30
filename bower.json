@@ -1,0 +1,32 @@
+{
+  "name": "OSConf",
+  "version": "0.0.0",
+  "homepage": "https://github.com/Gabs00/OSConf",
+  "authors": [
+    "Gabs00 <gewen87@gmail.com>"
+  ],
+  "description": "OpenSource Audio and Web conference platform",
+  "main": "server.js",
+  "keywords": [
+    "Open",
+    "Source",
+    "audio",
+    "conferencering",
+    "web",
+    "conferencing",
+    "meeting",
+    "meetups",
+    "meet"
+  ],
+  "license": "GPL v2",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "angular": "~1.2.23"
+  }
+}
