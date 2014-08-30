@@ -33,6 +33,7 @@ io.on('connection', function(socket){
   console.log('received connection');
   connections.push(socket);
   socket.on('init', function(offer){
+    console.log('received init offer req');
     connections.forEach(function(sock){
       if(socket !== sock){
         sock.emit('init', offer);
@@ -40,6 +41,7 @@ io.on('connection', function(socket){
     });
   });
   socket.on('ans', function(answer){
+    console.log('received ans offer');
     connections.forEach(function(sock){
       if(socket !== sock){
         sock.emit('init', answer);

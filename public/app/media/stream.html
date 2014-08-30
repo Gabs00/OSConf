@@ -34,13 +34,14 @@
   })
   .factory('WebRTC', function(Socket){
     var stream = {};
-    Socket.start('http://localhost');
+    Socket.start('/');
 
     var pc = new RTCPeerConnection({'iceServers':[{'urls':'stun:stun.iptel.org'}]});
     var initializeCall = function(){
       pc.createOffer(function(offer){
         pc.setLocalDescription(new RTCSessionDescription(offer), function(){
           Socket.emit('init', offer);
+          console.log(offer);
         });
       });
     };
@@ -62,7 +63,8 @@
     //should be moved to directive at some point
     pc.onaddstream = function(astream, vid){
       vid = vid || document.createElement('video');
-      console.log(vid);
+      vid.style = "width:1000px; height:1000px";
+      vid.autoplay = true;
       document.body.appendChild(vid);
       attachMediaStream(vid, astream);
     };
