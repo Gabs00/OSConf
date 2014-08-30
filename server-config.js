@@ -1,6 +1,12 @@
 var express = require('express');
 var app = express();
 
+var server = app.listen(5000);
+
+var io = require('socket.io')(server);
+
+console.log('Listening on ', 5000);
+
 app.use('/', function(req, res, next){
   console.log(req.url);
   if(req.url === '/'){
@@ -22,4 +28,24 @@ app.use('/',function(req, res, next){
     next();
   }
 });
+var connections = [];
+io.on('connection', function(socket){
+  console.log('received connection');
+  connections.push(socket);
+  socket.on('init', function(offer){
+    connections.forEach(function(sock){
+      if(socket !== sock){
+        sock.emit('init', offer);
+      }
+    });
+  });
+  socket.on('ans', function(answer){
+    connections.forEach(function(sock){
+      if(socket !== sock){
+        sock.emit('init', answer);
+      }
+    });   
+  });
+});
+
 module.exports = app;

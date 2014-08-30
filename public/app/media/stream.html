@@ -7,20 +7,81 @@
   <div id= 'stream' ng-controller="MediaController">
     <video autoplay style="width:1000px; height:1000px;"></video>
   </div>
+  <button class="request" rtc-request>Send Request</button>
 <script src="\public\scripts\adapter.js"></script>
+<script src="/socket.io/socket.io.js"></script>
 <script src="\bower_components\angular\angular.js"></script>
 <script>
   angular.module('media',[])
-  .factory('WebRTC', function(){
+  .factory('Socket', function(){
+    var socket = {}; 
+    var startSock = function(addr){
+      socket = io(addr);
+    };
+
+    var onEvent = function(evt, callback){
+      socket.on(evt, callback);
+    };
+    //ags: eventName , arg1, arg2, .. argn
+    var emitEvent = function(){
+      socket.emit.apply(socket, arguments);
+    };
+    return {
+      start: startSock,
+      on: onEvent,
+      emit:emitEvent
+    };
+  })
+  .factory('WebRTC', function(Socket){
     var stream = {};
+    Socket.start('http://localhost');
+
+    var pc = new RTCPeerConnection({'iceServers':[{'urls':'stun:stun.iptel.org'}]});
+    var initializeCall = function(){
+      pc.createOffer(function(offer){
+        pc.setLocalDescription(new RTCSessionDescription(offer), function(){
+          Socket.emit('init', offer);
+        });
+      });
+    };
+
+    Socket.on('init', function(receivedOffer){
+      pc.setRemoteDescription(new RTCSessionDescription(receivedOffer), function(){
+        pc.createAnswer(function(answer){
+          pc.setLocalDescription(new RTCSessionDescription(answer), function(){
+            Socket.emit('ans', answer);
+          });
+        });
+      });
+    });
+
+    Socket.on('ans', function(answer){
+      pc.setRemoteDescription(new RTCSessionDescription(answer), function(){});
+    });
+    //fyi this code shouldn't be in here
+    //should be moved to directive at some point
+    pc.onaddstream = function(astream, vid){
+      vid = vid || document.createElement('video');
+      console.log(vid);
+      document.body.appendChild(vid);
+      attachMediaStream(vid, astream);
+    };
+
+    //dropping here for future
+    var onaddstream = function(callback){
+      pc.onaddstream = callback;
+    };
     var getMedia = function(elem){
       getUserMedia({
         audio:false, 
         video:true,
         requestedMediaTypes:true
-      }, function(mediaSteam){
-        attachMediaStream(elem, mediaSteam);
-        stream = mediaSteam;
+      }, function(mediaStream){
+        pc.onaddstream(mediaStream, elem);
+
+        //local media stream
+        pc.addStream(mediaStream);
+        stream = mediaStream;
       }, function(err){
         console.log(err);
       });
@@ -28,15 +89,26 @@
     
     return {
       getMedia:getMedia,
-      stream:stream
+      stream:stream,
+      onaddstream:onaddstream,
+      start:initializeCall
     };
   })
   .controller('MediaController', function($scope, WebRTC){
     var elem = document.querySelector('video');
+    $scope.requestButton = {};
     WebRTC.getMedia(elem);
   })
-  .directive('media-view', function($scope, WebRTC){
-
+  .directive('rtcRequest', function(WebRTC){
+    function link(scope, element, attrs){
+      element.on('click', function(){
+        console.log('click');
+        WebRTC.start();
+      });
+    }
+    return {
+      link:link
+    };
   });
 </script>
 </body>
